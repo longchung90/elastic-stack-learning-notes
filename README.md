@@ -11,6 +11,9 @@
 ![Status](https://img.shields.io/badge/status-in%20progress-orange?style=flat)
 ![Last Updated](https://img.shields.io/badge/last%20updated-March%202026-lightgrey?style=flat)
 
+[![Stack Overview](https://img.shields.io/badge/view-Stack%20Overview-005571?style=flat)](https://longchung90.github.io/elastic-stack-learning-notes/stack_overview.html)
+[![Query Cookbook](https://img.shields.io/badge/view-Query%20Cookbook-0077CC?style=flat)](https://longchung90.github.io/elastic-stack-learning-notes/esql_query_cookbook.html)
+
 > **This repo is a living document.** Sections are added as sessions are completed. Not everything is here yet — and that is intentional.
 
 ---
@@ -26,7 +29,7 @@ This is not a copy of the official docs. It is the notes you wish existed when y
 ## Current Status
 
 ```
-ELASTICSEARCH_LEARNING.../
+elastic-stack-field-notes/
 │
 ├── README.md                          ← you are here
 ├── stack_overview.html                ← interactive Elastic Stack tool summary
@@ -34,11 +37,8 @@ ELASTICSEARCH_LEARNING.../
 └── Notebooks/
     ├── ESQL_Complete_Guide.ipynb      ✅ ES|QL full reference + real query outputs
     ├── shards_in_Es.ipynb             ✅ Shards, Lucene, shard pruning, node roles
-    ├── esql_query_cookbook.html       ✅ 15 queries — interactive HTML version
-    
+    └── esql_query_cookbook.html       ✅ 15 queries — interactive HTML version
 ```
-
-> **U** = untracked (new files not yet staged) · **M** = modified — commit when ready.
 
 ---
 
@@ -46,9 +46,9 @@ ELASTICSEARCH_LEARNING.../
 
 ### ✅ Notebooks/shards_in_Es.ipynb
 
-The foundation. Everything else in Elasticsearch builds on this.
+The foundation. Everything else in Elasticsearch builds on this. Covers what a shard is in plain and technical terms, the Lucene index instance, node roles and the 1,000 shard limit, and why `@timestamp` enables shard pruning.
 
-**Key concept from this section:**
+**Key concept:**
 
 ```
 Time filter arrives at coordinating node
@@ -68,19 +68,7 @@ This is called **shard pruning** — and it is why the time picker is always the
 
 ### ✅ Notebooks/ESQL_Complete_Guide.ipynb
 
-Full ES|QL reference built from live queries against `kibana_sample_data_logs`.
-
-**Real data facts from the practice session** (`kibana_sample_data_logs`):
-
-| Metric | Value |
-|---|---|
-| Total documents | 14,074 |
-| Response breakdown | 200 → 12,832 / 404 → 801 / 503 → 441 |
-| Overall error rate | 3.13% |
-| Top host | artifacts.elastic.co (46% of traffic) |
-| Top destination corridor | US:CN (2,621 requests) |
-| All traffic source | US only |
-| ⚠️ Known mapping issue | `response` is `text` not `integer` — use `TO_INTEGER(response.keyword)` for range queries |
+Full ES|QL reference built from live queries against `kibana_sample_data_logs`. Every command is shown with real outputs and annotated with the insight it reveals.
 
 **The ES|QL pipeline model:**
 
@@ -97,6 +85,12 @@ Every `|` passes its output as the input to the next stage. No subqueries. No ne
 
 ---
 
+### ✅ esql_query_cookbook.html
+
+15 ready-to-run ES|QL queries grouped by concept — response codes, traffic patterns, bandwidth, EVAL logic, WHERE filters, and multi-pipe chains. Interactive and live at the link above.
+
+---
+
 ## Dataset Used
 
 All notebooks and query outputs in this repo were built against the **Kibana Sample Web Logs** dataset — a built-in sample dataset shipped with Kibana.
@@ -107,7 +101,7 @@ All notebooks and query outputs in this repo were built against the **Kibana Sam
 2. Click the **Sample data** tab
 3. Find **Sample web logs** → click **Install data**
 
-That's it. No CSV upload, no external source, no credentials needed.
+No CSV upload, no external source, no credentials needed.
 
 ### What it contains
 
@@ -131,46 +125,51 @@ Type:       Data stream backing index
 | `extension` | `text + keyword` | zip, deb, rpm, gz, css |
 | `memory` / `phpmemory` | `double / long` | ⚠️ Null in every document — wasted mapping slots |
 
-### Key facts to know before querying
+### Key facts before querying
 
 - **All traffic originates from US** — `geo.src` returns only `"US"` for all 14,074 docs. Do not use this dataset to test source-country filtering.
 - **No response exceeds ~20KB** — `WHERE bytes > 50000` returns zero rows. Check `MAX(bytes)` before writing range filters.
-- **All 441 errors are 503** — there are no 500 errors in this dataset. Response breakdown: `200 → 12,832` / `404 → 801` / `503 → 441`.
-- **`response` is text, not integer** — the single biggest mapping gotcha. Range queries like `response >= 500` throw a `verification_exception`. Workaround: `EVAL is_error = CASE(TO_INTEGER(response.keyword) >= 500, 1, 0)`.
+- **All 441 errors are 503** — there are no 500 errors. Response breakdown: `200 → 12,832` / `404 → 801` / `503 → 441`.
+- **`response` is text, not integer** — range queries like `response >= 500` throw a `verification_exception`. Workaround: `EVAL is_error = CASE(TO_INTEGER(response.keyword) >= 500, 1, 0)`.
 
 ---
 
 ## What Is Coming Next
 
-### ✅ esql_query_cookbook.html + esql_query_cookbook.pdf
+### 🔜 Index Build notebook
+Explicit mapping, ILM policy, index templates, alias bootstrap, and Logstash integration. Covers why dynamic mapping breaks in production, all five ILM lifecycle phases, and the full Logstash → alias → rollover write path.
 
-15 ready-to-run ES|QL queries grouped by concept with annotated real outputs. The HTML version is interactive — collapsible sections per concept group. The PDF is print-friendly for desk reference.
+### 🔜 Hands-on session notebook
+Full `kibana_sample_data_logs` session log — mapping audit, field type analysis, every query run and every error resolved. Includes the mapping audit visual and field type guide rendered inline.
+
+### 🔜 Banking context notebook
+ILM design for financial institutions — 7–10 year retention, regulatory compliance (Basel III, SOX, PCI-DSS), frozen phase for audit access, and snapshot policy vs ILM.
 
 ---
 
 ## The Stack
 
-An interactive overview of all tools is in [`stack_overview.html`](./stack_overview.html) — open it in a browser for the full visual card with descriptions.
+An interactive overview of all tools and how they connect is in [`stack_overview.html`](https://longchung90.github.io/elastic-stack-learning-notes/stack_overview.html).
 
 | Layer | Tool | Role | Status in this repo |
 |---|---|---|---|
 | UI | **Kibana** | Visualise, query, manage | Used throughout — Dev Tools and Discover |
 | Query | **ES\|QL** | Pipeline-based query language | ✅ Full reference complete |
 | Core | **Elasticsearch** | Distributed storage + search | ✅ Shards covered · Index build coming |
-| Pipeline | **Logstash** | Parse, enrich, route events | 🔜 Coming in 02_index_build |
-| Agent | **Filebeat** | Lightweight log collector | 🔜 Coming in 02_index_build |
+| Pipeline | **Logstash** | Parse, enrich, route events | 🔜 Coming in index build notebook |
+| Agent | **Filebeat** | Lightweight log collector | 🔜 Coming in index build notebook |
 
 ---
 
 ## How to Use This Repo Right Now
 
-1. **Read `01_core_concepts/shards_explained.md`** — understanding shards is the prerequisite for everything else. The shard pruning concept directly explains why every query guide tells you to set the time picker first.
+1. **Open `Notebooks/shards_in_Es.ipynb`** — start here. Shards are the prerequisite concept for everything else in Elasticsearch. The shard pruning section directly explains why the time picker is always set first.
 
-2. **Open `03_esql_reference/esql_complete_reference.md`** — use this as your daily query reference. The decision tree at the bottom tells you which command to reach for in any situation.
+2. **Open `Notebooks/ESQL_Complete_Guide.ipynb`** — full ES|QL command reference with real outputs. The decision tree at the end tells you which command to reach for in any situation.
 
-3. **Run the queries in `03_esql_reference/esql_query_cookbook.md`** — paste them into Kibana Dev Tools against your own `kibana_sample_data_logs` dataset. All 15 queries are tested and return real results.
+3. **Open [`esql_query_cookbook.html`](https://longchung90.github.io/elastic-stack-learning-notes/esql_query_cookbook.html)** — 15 interactive queries, live in the browser.
 
-4. **Watch this repo** — index build and hands-on session notes are the next sections to be added.
+4. **Open [`stack_overview.html`](https://longchung90.github.io/elastic-stack-learning-notes/stack_overview.html)** for a visual summary of every tool in the Elastic Stack and how they connect.
 
 ---
 
@@ -191,48 +190,49 @@ An interactive overview of all tools is in [`stack_overview.html`](./stack_overv
 
 ## Official References
 
-All concepts in this repo are grounded in the official Elastic documentation. Use these links to go deeper on any topic.
+All concepts in this repo are grounded in the official Elastic documentation.
 
 ### Elasticsearch Core
 
 | Topic | Link |
 |---|---|
-| Clusters, nodes, and shards | https://www.elastic.co/docs/deploy-manage/distributed-architecture/clusters-nodes-shards |
-| Index lifecycle management | https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html |
-| ILM phases and actions | https://www.elastic.co/docs/manage-data/lifecycle/index-lifecycle-management/index-lifecycle |
-| Configure a lifecycle policy | https://www.elastic.co/docs/manage-data/lifecycle/index-lifecycle-management/configure-lifecycle-policy |
-| Explicit mapping | https://www.elastic.co/docs/manage-data/data-store/mapping/explicit-mapping |
-| Dynamic field mapping | https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-field-mapping.html |
-| Mapping types overview | https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html |
-| How many shards should I have | https://www.elastic.co/blog/how-many-shards-should-i-have-in-my-elasticsearch-cluster |
-| Shards and replicas guide | https://www.elastic.co/search-labs/blog/elasticsearch-shards-and-replicas-guide |
+| Clusters, nodes, and shards | [elastic.co/docs](https://www.elastic.co/docs/deploy-manage/distributed-architecture/clusters-nodes-shards) |
+| Index lifecycle management | [elastic.co/guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html) |
+| ILM phases and actions | [elastic.co/docs](https://www.elastic.co/docs/manage-data/lifecycle/index-lifecycle-management/index-lifecycle) |
+| Configure a lifecycle policy | [elastic.co/docs](https://www.elastic.co/docs/manage-data/lifecycle/index-lifecycle-management/configure-lifecycle-policy) |
+| Explicit mapping | [elastic.co/docs](https://www.elastic.co/docs/manage-data/data-store/mapping/explicit-mapping) |
+| Dynamic field mapping | [elastic.co/guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-field-mapping.html) |
+| Mapping types overview | [elastic.co/guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html) |
+| How many shards should I have | [elastic.co/blog](https://www.elastic.co/blog/how-many-shards-should-i-have-in-my-elasticsearch-cluster) |
+| Shards and replicas guide | [elastic.co/search-labs](https://www.elastic.co/search-labs/blog/elasticsearch-shards-and-replicas-guide) |
 
 ### ES|QL
 
 | Topic | Link |
 |---|---|
-| ES\|QL overview | https://www.elastic.co/guide/en/elasticsearch/reference/current/esql.html |
-| ES\|QL commands reference | https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-commands.html |
-| ES\|QL functions reference | https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-functions-operators.html |
-| ES\|QL async query API | https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-async-query-api.html |
-| ES\|QL query parameters | https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-rest.html |
+| ES\|QL overview | [elastic.co/guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/esql.html) |
+| ES\|QL commands reference | [elastic.co/guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-commands.html) |
+| ES\|QL functions and operators | [elastic.co/guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-functions-operators.html) |
+| ES\|QL async query API | [elastic.co/guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-async-query-api.html) |
+| ES\|QL query parameters | [elastic.co/guide](https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-rest.html) |
 
 ### Kibana
 
 | Topic | Link |
 |---|---|
-| Kibana Discover | https://www.elastic.co/guide/en/kibana/current/discover.html |
-| Index Management UI | https://www.elastic.co/guide/en/kibana/current/index-management.html |
-| Sample data | https://www.elastic.co/guide/en/kibana/current/get-started.html |
+| Kibana Discover | [elastic.co/guide](https://www.elastic.co/guide/en/kibana/current/discover.html) |
+| Index Management UI | [elastic.co/guide](https://www.elastic.co/guide/en/kibana/current/index-management.html) |
+| Sample data | [elastic.co/guide](https://www.elastic.co/guide/en/kibana/current/get-started.html) |
 
 ### Logstash & Beats
 
 | Topic | Link |
 |---|---|
-| Logstash Elasticsearch output plugin | https://www.elastic.co/guide/en/logstash/current/plugins-outputs-elasticsearch.html |
-| Logstash grok filter | https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html |
-| Filebeat overview | https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-overview.html |
+| Logstash Elasticsearch output plugin | [elastic.co/guide](https://www.elastic.co/guide/en/logstash/current/plugins-outputs-elasticsearch.html) |
+| Logstash grok filter | [elastic.co/guide](https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html) |
+| Filebeat overview | [elastic.co/guide](https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-overview.html) |
 
 ---
 
 *Built from hands-on Elasticsearch practice sessions — started March 2026*
+*New sections added as sessions are completed*
