@@ -35,7 +35,7 @@ ELASTICSEARCH_LEARNING.../
     ├── ESQL_Complete_Guide.ipynb      ✅ ES|QL full reference + real query outputs
     ├── shards_in_Es.ipynb             ✅ Shards, Lucene, shard pruning, node roles
     ├── esql_query_cookbook.html       ✅ 15 queries — interactive HTML version
-    └── esql_query_cookbook.pdf        ✅ 15 queries — print-friendly PDF version
+    
 ```
 
 > **U** = untracked (new files not yet staged) · **M** = modified — commit when ready.
