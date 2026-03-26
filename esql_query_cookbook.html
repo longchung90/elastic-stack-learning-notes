@@ -1,0 +1,262 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.wrap{padding:4px 0}
+.section{margin-bottom:20px}
+.sec-title{font-size:14px;font-weight:500;color:var(--color-text-primary);padding:8px 12px;background:var(--color-background-secondary);border-radius:8px 8px 0 0;border:0.5px solid var(--color-border-tertiary);border-bottom:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.sec-title:hover{background:var(--color-background-tertiary)}
+.badge{font-size:11px;font-weight:400;padding:2px 8px;border-radius:10px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);color:var(--color-text-secondary)}
+.cards{border:0.5px solid var(--color-border-tertiary);border-radius:0 0 8px 8px;overflow:hidden}
+.card{border-bottom:0.5px solid var(--color-border-tertiary);padding:12px 14px}
+.card:last-child{border-bottom:none}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px}
+.card-name{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.card-tag{font-size:11px;padding:2px 7px;border-radius:10px;white-space:nowrap;margin-left:8px}
+.tag-new{background:#EEEDFE;color:#3C3489}
+.tag-warn{background:#FAEEDA;color:#633806}
+.tag-tip{background:#E1F5EE;color:#085041}
+.tag-core{background:#E6F1FB;color:#0C447C}
+.why{font-size:12px;color:var(--color-text-secondary);margin-bottom:8px;line-height:1.5}
+pre{background:var(--color-background-secondary);border-radius:6px;padding:10px 12px;font-size:11px;font-family:var(--font-mono,monospace);color:var(--color-text-primary);overflow-x:auto;white-space:pre;line-height:1.6;border:0.5px solid var(--color-border-tertiary)}
+.note{font-size:11px;color:var(--color-text-secondary);margin-top:6px;padding-left:4px;border-left:2px solid var(--color-border-secondary);padding-left:8px;line-height:1.5}
+</style>
+<div class="wrap">
+
+<div class="section">
+  <div class="sec-title">1 — Response codes <span class="badge">what is your error rate?</span></div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Error rate as a percentage</span><span class="card-tag tag-core">EVAL + STATS</span></div>
+      <div class="why">Calculate what percentage of all requests are errors. EVAL creates a new computed column on each row before STATS aggregates it.</div>
+      <pre>FROM kibana_sample_data_logs
+| EVAL is_error = CASE(response.keyword >= "500", 1, 0)
+| STATS
+    total    = COUNT(*),
+    errors   = SUM(is_error),
+    error_pct = ROUND(100.0 * SUM(is_error) / COUNT(*), 2)</pre>
+      <div class="note">Why response.keyword? Because response is mapped as text — we have to use the keyword sub-field for comparisons. In a proper integer mapping you would write response >= 500 directly.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Response code breakdown</span><span class="card-tag tag-core">STATS + SORT</span></div>
+      <div class="why">See every distinct response code and how often it appeared. Good first query to run on any web log dataset.</div>
+      <pre>FROM kibana_sample_data_logs
+| STATS count = COUNT(*) BY response.keyword
+| SORT count DESC</pre>
+      <div class="note">This is where the response as text problem becomes visible — codes come back as "200", "404" etc. Notice you cannot do >= here.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">2 — Traffic patterns <span class="badge">when and from where?</span></div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Requests per hour of day</span><span class="card-tag tag-core">DATE_TRUNC</span></div>
+      <div class="why">DATE_TRUNC rounds @timestamp down to the nearest bucket. This shows you peak traffic hours — essential for capacity planning.</div>
+      <pre>FROM kibana_sample_data_logs
+| STATS requests = COUNT(*)
+    BY hour = DATE_TRUNC(1 hour, @timestamp)
+| SORT hour ASC</pre>
+      <div class="note">Change "1 hour" to "1 day" or "15 minutes" to zoom in or out on the time grain.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Top source countries</span><span class="card-tag tag-core">STATS BY geo</span></div>
+      <div class="why">Aggregate on the geo.src keyword field. Shows where your users are coming from — useful for CDN routing decisions.</div>
+      <pre>FROM kibana_sample_data_logs
+| STATS requests = COUNT(*) BY geo.src
+| SORT requests DESC
+| LIMIT 10</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Top traffic corridors (src → dest)</span><span class="card-tag tag-new">multi-field group</span></div>
+      <div class="why">Group by the srcdest pair field to see which country-to-country routes carry the most traffic.</div>
+      <pre>FROM kibana_sample_data_logs
+| STATS requests = COUNT(*),
+        total_bytes = SUM(bytes)
+    BY geo.srcdest
+| SORT requests DESC
+| LIMIT 10</pre>
+      <div class="note">srcdest is pre-combined as "US:IN" — this avoids needing a string concat across two fields.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">3 — Bytes and bandwidth <span class="badge">how heavy are requests?</span></div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Bandwidth stats per file extension</span><span class="card-tag tag-core">percentiles</span></div>
+      <div class="why">See which file types are heaviest. ZIP downloads vs CSS files will look very different. PERCENTILE shows the 95th percentile — the "slow tail" of your distribution.</div>
+      <pre>FROM kibana_sample_data_logs
+| STATS
+    requests  = COUNT(*),
+    avg_bytes = ROUND(AVG(bytes), 0),
+    p95_bytes = PERCENTILE(bytes, 95),
+    max_bytes = MAX(bytes)
+  BY extension.keyword
+| SORT avg_bytes DESC</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Heavy requests — find the outliers</span><span class="card-tag tag-new">WHERE + SORT</span></div>
+      <div class="why">Find individual large responses. Useful for catching accidental large payload returns or debugging slow requests.</div>
+      <pre>FROM kibana_sample_data_logs
+| WHERE bytes > 50000
+| KEEP @timestamp, request, bytes, response.keyword, clientip
+| SORT bytes DESC
+| LIMIT 20</pre>
+      <div class="note">KEEP selects only the columns you want — makes the output readable instead of returning all 20+ fields.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">4 — EVAL — creating new fields on the fly <span class="badge">computed columns</span></div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Classify requests by size bucket</span><span class="card-tag tag-new">EVAL + CASE</span></div>
+      <div class="why">CASE is ES|QL's if-then-else. EVAL adds a new computed column to every row. Here we classify each request into a size band without changing the underlying data.</div>
+      <pre>FROM kibana_sample_data_logs
+| EVAL size_band = CASE(
+    bytes < 1000,   "small  < 1kb",
+    bytes < 10000,  "medium 1–10kb",
+    bytes < 100000, "large  10–100kb",
+                    "huge   > 100kb"
+  )
+| STATS count = COUNT(*) BY size_band
+| SORT count DESC</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Extract day of week from timestamp</span><span class="card-tag tag-new">DATE_FORMAT</span></div>
+      <div class="why">DATE_FORMAT extracts parts of a timestamp as strings. This reveals weekday vs weekend traffic patterns — critical for on-call scheduling.</div>
+      <pre>FROM kibana_sample_data_logs
+| EVAL day = DATE_FORMAT("EEEE", @timestamp)
+| STATS requests = COUNT(*) BY day
+| SORT requests DESC</pre>
+      <div class="note">EEEE = full day name (Monday, Tuesday...). Use MM for month, HH for hour, yyyy for year.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">KB instead of bytes — human readable</span><span class="card-tag tag-tip">EVAL math</span></div>
+      <div class="why">EVAL can do arithmetic. Divide bytes by 1024 to get KB. ROUND cleans up the decimal places.</div>
+      <pre>FROM kibana_sample_data_logs
+| EVAL kb = ROUND(bytes / 1024.0, 2)
+| STATS
+    avg_kb = ROUND(AVG(kb), 2),
+    max_kb = ROUND(MAX(kb), 2)
+  BY extension.keyword
+| SORT avg_kb DESC
+| LIMIT 10</pre>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">5 — WHERE filters — narrowing before aggregating <span class="badge">pre-filter patterns</span></div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Only errors, broken down by host</span><span class="card-tag tag-core">WHERE + STATS</span></div>
+      <div class="why">Filter first with WHERE, then aggregate. This is cheaper than aggregating everything and filtering the result — ES applies WHERE before loading documents into the pipeline.</div>
+      <pre>FROM kibana_sample_data_logs
+| WHERE response.keyword == "503"
+    OR response.keyword == "404"
+    OR response.keyword == "500"
+| STATS errors = COUNT(*) BY host.keyword, response.keyword
+| SORT errors DESC
+| LIMIT 20</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Specific time window</span><span class="card-tag tag-core">WHERE time range</span></div>
+      <div class="why">Filter to a specific time slice inside ES|QL — combine with the Kibana time picker or use standalone in Dev Tools.</div>
+      <pre>FROM kibana_sample_data_logs
+| WHERE @timestamp >= "2026-04-14T00:00:00Z"
+    AND @timestamp <  "2026-04-15T00:00:00Z"
+| STATS
+    requests = COUNT(*),
+    errors   = COUNT(*) WHERE response.keyword != "200"
+  BY host.keyword
+| SORT requests DESC</pre>
+      <div class="note">COUNT(*) WHERE is a conditional count — counts only rows matching the inner condition. Added in recent ES|QL versions.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">LIKE — pattern matching on strings</span><span class="card-tag tag-new">LIKE wildcard</span></div>
+      <div class="why">LIKE does wildcard matching — % means "any characters". Useful when you know part of a URL path but not the full value.</div>
+      <pre>FROM kibana_sample_data_logs
+| WHERE request LIKE "%elasticsearch%"
+| STATS
+    downloads = COUNT(*),
+    total_mb  = ROUND(SUM(bytes) / 1048576.0, 2)
+  BY request.keyword
+| SORT downloads DESC
+| LIMIT 10</pre>
+    </div>
+
+  </div>
+</div>
+
+<div class="section">
+  <div class="sec-title">6 — Chaining pipes — building complex pipelines <span class="badge">multi-step</span></div>
+  <div class="cards">
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Top IPs with high error rates</span><span class="card-tag tag-new">pipe chain</span></div>
+      <div class="why">Each | pipe passes its output as input to the next stage. This builds a multi-step analysis in one query — no subqueries needed.</div>
+      <pre>FROM kibana_sample_data_logs
+| STATS
+    total  = COUNT(*),
+    errors = COUNT(*) WHERE response.keyword != "200"
+  BY clientip
+| EVAL error_rate = ROUND(100.0 * errors / total, 1)
+| WHERE total > 10
+| SORT error_rate DESC
+| LIMIT 15</pre>
+      <div class="note">WHERE total > 10 removes IPs with only 1–2 requests — they would show 100% error rates by chance and are noise.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">Bandwidth heatmap by hour + extension</span><span class="card-tag tag-new">two-dimension group</span></div>
+      <div class="why">Group by two dimensions simultaneously — time bucket AND file type. Shows which file types drive bandwidth at which hours.</div>
+      <pre>FROM kibana_sample_data_logs
+| STATS total_mb = ROUND(SUM(bytes) / 1048576.0, 2)
+    BY
+      hour = DATE_TRUNC(1 hour, @timestamp),
+      extension.keyword
+| WHERE total_mb > 1
+| SORT hour ASC, total_mb DESC</pre>
+    </div>
+
+    <div class="card">
+      <div class="card-top"><span class="card-name">RENAME + DROP — tidy output columns</span><span class="card-tag tag-tip">output shaping</span></div>
+      <div class="why">RENAME renames columns in the output. DROP removes columns you do not need. Makes results readable in Dev Tools and dashboards.</div>
+      <pre>FROM kibana_sample_data_logs
+| STATS
+    req   = COUNT(*),
+    bytes = SUM(bytes)
+  BY geo.src
+| RENAME geo.src AS country,
+         req     AS requests,
+         bytes   AS total_bytes
+| EVAL total_mb = ROUND(total_bytes / 1048576.0, 2)
+| DROP total_bytes
+| SORT requests DESC
+| LIMIT 10</pre>
+    </div>
+
+  </div>
+</div>
+
+</div>
