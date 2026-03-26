@@ -1,0 +1,226 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,sans-serif);padding:20px 16px}
+h1{font-size:22px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.sub{font-size:13px;color:var(--color-text-secondary);margin-bottom:24px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.layer{border-radius:12px;border:0.5px solid var(--color-border-tertiary);overflow:hidden}
+.layer-header{padding:12px 16px;display:flex;align-items:center;gap:12px}
+.layer-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.layer-title{font-size:14px;font-weight:500;color:var(--color-text-primary)}
+.layer-desc{font-size:12px;color:var(--color-text-secondary);margin-top:2px;line-height:1.4}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--color-border-tertiary);border-top:0.5px solid var(--color-border-tertiary)}
+.tool{background:var(--color-background-primary);padding:12px 14px}
+.tool-name{font-size:13px;font-weight:500;color:var(--color-text-primary);margin-bottom:3px}
+.tool-desc{font-size:11px;color:var(--color-text-secondary);line-height:1.5}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;margin-top:4px;font-weight:500}
+
+.l1 .layer-header{background:#E6F1FB}
+.l1 .layer-icon{background:#185FA5}
+.l1 .layer-title{color:#0C447C}
+.l1 .layer-desc{color:#185FA5}
+.t1{background:#E6F1FB;color:#0C447C}
+
+.l2 .layer-header{background:#E1F5EE}
+.l2 .layer-icon{background:#0F6E56}
+.l2 .layer-title{color:#085041}
+.l2 .layer-desc{color:#0F6E56}
+.t2{background:#E1F5EE;color:#085041}
+
+.l3 .layer-header{background:#FAEEDA}
+.l3 .layer-icon{background:#854F0B}
+.l3 .layer-title{color:#633806}
+.l3 .layer-desc{color:#854F0B}
+.t3{background:#FAEEDA;color:#633806}
+
+.l4 .layer-header{background:#EEEDFE}
+.l4 .layer-icon{background:#534AB7}
+.l4 .layer-title{color:#3C3489}
+.l4 .layer-desc{color:#534AB7}
+.t4{background:#EEEDFE;color:#3C3489}
+
+.l5 .layer-header{background:#F1EFE8}
+.l5 .layer-icon{background:#5F5E5A}
+.l5 .layer-title{color:#444441}
+.l5 .layer-desc{color:#5F5E5A}
+.t5{background:#F1EFE8;color:#444441}
+
+.arrow{text-align:center;color:var(--color-text-tertiary);font-size:18px;margin:2px 0}
+
+.legend{margin-top:20px;display:flex;gap:16px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--color-text-secondary)}
+.leg-dot{width:10px;height:10px;border-radius:3px}
+</style>
+
+<h1>elastic-stack-field-notes</h1>
+<p class="sub">A practitioner's guide to the Elastic Stack — tools, concepts, and production patterns</p>
+
+<div class="stack">
+
+  <div class="layer l1">
+    <div class="layer-header">
+      <div class="layer-icon">&#x1F50D;</div>
+      <div>
+        <div class="layer-title">Kibana — Visualise &amp; Query</div>
+        <div class="layer-desc">The UI layer. Discover, dashboards, Dev Tools, and the ES|QL search bar all live here.</div>
+      </div>
+    </div>
+    <div class="tools">
+      <div class="tool">
+        <div class="tool-name">Discover</div>
+        <div class="tool-desc">Explore raw documents. Combines the time picker, DSL filter bar, and ES|QL pipeline in one view.</div>
+        <span class="tag t1">exploration</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">Dev Tools / Console</div>
+        <div class="tool-desc">Direct REST API access. Where you run raw ES|QL, check mappings, inspect ILM, and bootstrap indices.</div>
+        <span class="tag t1">development</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">Dashboards</div>
+        <div class="tool-desc">Build charts and maps from ES|QL query results. The geo_point mapping enables the world map view.</div>
+        <span class="tag t1">visualisation</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">Index Management</div>
+        <div class="tool-desc">View indices, templates, ILM policies, and data streams. Manage lifecycle phases without the API.</div>
+        <span class="tag t1">operations</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">↕</div>
+
+  <div class="layer l2">
+    <div class="layer-header">
+      <div class="layer-icon">&#x26A1;</div>
+      <div>
+        <div class="layer-title">ES|QL — Query Language</div>
+        <div class="layer-desc">Pipeline-based query language. Chain commands with | to filter, compute, aggregate, and shape results.</div>
+      </div>
+    </div>
+    <div class="tools">
+      <div class="tool">
+        <div class="tool-name">FROM · WHERE · STATS</div>
+        <div class="tool-desc">Core pipeline. Select a source, filter rows, aggregate into groups. The pattern used in 90% of queries.</div>
+        <span class="tag t2">core</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">EVAL · CASE · TO_INTEGER</div>
+        <div class="tool-desc">Compute new columns at query time. Workaround for mapping mistakes like response stored as text.</div>
+        <span class="tag t2">compute</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">DATE_TRUNC · DATE_FORMAT</div>
+        <div class="tool-desc">Time bucketing and extraction. Enables hourly/daily trend charts and day-of-week analysis.</div>
+        <span class="tag t2">time</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">KEEP · DROP · RENAME</div>
+        <div class="tool-desc">Output shaping. Control which columns appear and what they are called. Essential for readable results.</div>
+        <span class="tag t2">output</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">↕</div>
+
+  <div class="layer l3">
+    <div class="layer-header">
+      <div class="layer-icon">&#x1F9F1;</div>
+      <div>
+        <div class="layer-title">Elasticsearch — Storage &amp; Search Engine</div>
+        <div class="layer-desc">The core. Distributed document store built on Apache Lucene. Where shards, mappings, and ILM live.</div>
+      </div>
+    </div>
+    <div class="tools">
+      <div class="tool">
+        <div class="tool-name">Indices &amp; Shards</div>
+        <div class="tool-desc">Each index is split into N primary shards (Lucene instances). Shard pruning skips shards outside the time window before reading a single document.</div>
+        <span class="tag t3">storage</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">Index Mapping</div>
+        <div class="tool-desc">The schema. Defines field types — keyword, text, date, ip, geo_point, long. Gets these wrong and you cannot fix them without a full reindex.</div>
+        <span class="tag t3">schema</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">ILM — Index Lifecycle Management</div>
+        <div class="tool-desc">Automates hot → warm → cold → frozen → delete transitions. Runs every 10 minutes. No human action needed once configured.</div>
+        <span class="tag t3">lifecycle</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">Aliases &amp; Templates</div>
+        <div class="tool-desc">Alias = the stable write address that never changes across rollovers. Template = the blueprint applied to every new matching index automatically.</div>
+        <span class="tag t3">routing</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">↕</div>
+
+  <div class="layer l4">
+    <div class="layer-header">
+      <div class="layer-icon">&#x1F500;</div>
+      <div>
+        <div class="layer-title">Logstash — Ingest Pipeline</div>
+        <div class="layer-desc">Sits between your data sources and Elasticsearch. Parses, enriches, filters, and routes events before indexing.</div>
+      </div>
+    </div>
+    <div class="tools">
+      <div class="tool">
+        <div class="tool-name">Input plugins</div>
+        <div class="tool-desc">Receives data from Filebeat (port 5044), Kafka, syslog, HTTP, S3, and more. Each source is a named input block.</div>
+        <span class="tag t4">ingestion</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">Filter plugins — grok · mutate · date</div>
+        <div class="tool-desc">grok parses raw log lines into structured fields. mutate renames and converts types. date sets @timestamp from the event time, not ingest time.</div>
+        <span class="tag t4">transform</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">Output — Elasticsearch plugin</div>
+        <div class="tool-desc">Ships events to ES via the alias name. manage_template: false is critical — prevents Logstash from overwriting your explicit mapping.</div>
+        <span class="tag t4">output</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">Dead-letter queue</div>
+        <div class="tool-desc">Documents that fail parsing or indexing land here for inspection. Prevents silent data loss on malformed events.</div>
+        <span class="tag t4">reliability</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow">↕</div>
+
+  <div class="layer l5">
+    <div class="layer-header">
+      <div class="layer-icon">&#x1F4C4;</div>
+      <div>
+        <div class="layer-title">Filebeat — Lightweight Agent</div>
+        <div class="layer-desc">Runs on each server. Tails log files and ships raw lines to Logstash or directly to Elasticsearch.</div>
+      </div>
+    </div>
+    <div class="tools">
+      <div class="tool">
+        <div class="tool-name">File input / harvester</div>
+        <div class="tool-desc">Monitors log file paths. Tracks read position so it never re-ships the same line after a restart. Backpressure-aware — slows down if Logstash is busy.</div>
+        <span class="tag t5">collection</span>
+      </div>
+      <div class="tool">
+        <div class="tool-name">Modules</div>
+        <div class="tool-desc">Pre-built configs for common log formats — Nginx, Apache, MySQL, system logs. Automatically sets field names to ECS standard.</div>
+        <span class="tag t5">configuration</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="legend">
+  <div class="leg-item"><div class="leg-dot" style="background:#185FA5"></div>Kibana (UI)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#0F6E56"></div>ES|QL (query)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#854F0B"></div>Elasticsearch (core)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#534AB7"></div>Logstash (pipeline)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#5F5E5A"></div>Filebeat (agent)</div>
+</div>
