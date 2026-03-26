@@ -34,6 +34,8 @@ ELASTICSEARCH_LEARNING.../
 └── Notebooks/
     ├── ESQL_Complete_Guide.ipynb      ✅ ES|QL full reference + real query outputs
     ├── shards_in_Es.ipynb             ✅ Shards, Lucene, shard pruning, node roles
+    ├── Mapping.ipynb                  ✅ Index creation, mappings, analyzers, reindex, aliases
+    ├── performingsearches.ipynb       ✅ match, match_phrase, term, pagination, sorting, fielddata
     ├── esql_query_cookbook.html       ✅ 15 queries — interactive HTML version ](https://longchung90.github.io/elastic-stack-learning-notes/stack_overview.html)
 
 [![Query Cookbook](https://img.shields.io/badge/view-Query%20Cookbook-0077CC?style=flat)](https://longchung90.github.io/elastic-stack-learning-notes/esql_query_cookbook.html)
@@ -65,6 +67,43 @@ Results merged and returned
 ```
 
 This is called **shard pruning** — and it is why the time picker is always the first filter you set.
+
+---
+
+### ✅ Notebooks/Mapping.ipynb
+
+Index operations from creation to reindexing — the hands-on reference for building and managing indices in Elasticsearch.
+
+**Topics covered:**
+
+- Creating indices with explicit settings and mappings
+- Field mapping types — `text`, `keyword`, `date`, `ip`, nested objects
+- Analyzers — custom tokenizers, filters, and how analyzed vs keyword fields differ
+- CRUD operations against live indices
+- Search queries from within an index context
+- Reindexing — moving data between indices without downtime
+- Aliases — zero-downtime index swaps and read/write alias patterns
+- Index lifecycle — when to use ILM vs manual management
+- Common errors and fixes — including the `fielddata` error and mapping conflicts
+
+---
+
+### ✅ Notebooks/performingsearches.ipynb
+
+Search query patterns built from real queries against `blogs_fixed2`.
+
+**Key concepts:**
+
+| Concept | What it covers |
+|---|---|
+| `match` OR vs AND | Precision vs recall trade-off at query time |
+| `match` vs `match_phrase` | Word-level vs positional matching |
+| Pagination | `from` + `size`, deep pagination warning, `search_after` note |
+| `_source` vs `fields` | Efficient field retrieval for large documents |
+| Fielddata error | Why it fires on `keyword` fields and how to fix it |
+| `match` vs `term` on nested fields | When to use `.keyword` subfields for exact matching |
+
+> ⚠️ Deep pagination (`from: 10000+`) is expensive — Elasticsearch fetches and discards all preceding results. Use `search_after` for deep pagination in production.
 
 ---
 
