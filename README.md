@@ -29,11 +29,13 @@ This is not a copy of the official docs. It is the notes you wish existed when y
 ELASTICSEARCH_LEARNING.../
 │
 ├── README.md                          ← you are here
+├── stack_overview.html                ← interactive Elastic Stack tool summary
 │
 └── Notebooks/
     ├── ESQL_Complete_Guide.ipynb      ✅ ES|QL full reference + real query outputs
     ├── shards_in_Es.ipynb             ✅ Shards, Lucene, shard pruning, node roles
-    └── esql_query_cookbook.pdf        ✅ 15 ready-to-run queries with annotated results
+    ├── esql_query_cookbook.html       ✅ 15 queries — interactive HTML version
+    └── esql_query_cookbook.pdf        ✅ 15 queries — print-friendly PDF version
 ```
 
 > **U** = untracked (new files not yet staged) · **M** = modified — commit when ready.
@@ -97,15 +99,15 @@ Every `|` passes its output as the input to the next stage. No subqueries. No ne
 
 ## What Is Coming Next
 
-### ✅ Notebooks/esql_query_cookbook.pdf
+### ✅ esql_query_cookbook.html + esql_query_cookbook.pdf
 
-15 ready-to-run ES|QL queries grouped by concept with annotated real outputs. Print-friendly reference.
+15 ready-to-run ES|QL queries grouped by concept with annotated real outputs. The HTML version is interactive — collapsible sections per concept group. The PDF is print-friendly for desk reference.
 
 ---
 
 ## The Stack
 
-A visual interactive overview of all tools is in [`stack_overview.html`](./stack_overview.html).
+An interactive overview of all tools is in [`stack_overview.html`](./stack_overview.html) — open it in a browser for the full visual card with descriptions.
 
 | Layer | Tool | Role | Status in this repo |
 |---|---|---|---|
