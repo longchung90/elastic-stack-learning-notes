@@ -97,6 +97,49 @@ Every `|` passes its output as the input to the next stage. No subqueries. No ne
 
 ---
 
+## Dataset Used
+
+All notebooks and query outputs in this repo were built against the **Kibana Sample Web Logs** dataset — a built-in sample dataset shipped with Kibana.
+
+### How to load it
+
+1. Open Kibana → **Home** or **Add data**
+2. Click the **Sample data** tab
+3. Find **Sample web logs** → click **Install data**
+
+That's it. No CSV upload, no external source, no credentials needed.
+
+### What it contains
+
+```
+Index:      .ds-kibana_sample_data_logs-<date>-000001
+Documents:  14,074
+Type:       Data stream backing index
+```
+
+| Field | Type | Notes |
+|---|---|---|
+| `@timestamp` | `date` | Shard pruning key |
+| `clientip` / `ip` | `ip` | CIDR-queryable |
+| `geo.coordinates` | `geo_point` | Powers Kibana map view |
+| `geo.src` / `dest` / `srcdest` | `keyword` | All traffic source = US only |
+| `response` | `text + keyword` | ⚠️ Mapped as text — use `TO_INTEGER(response.keyword)` for range queries |
+| `bytes` | `long` | Max ~20KB per response |
+| `bytes_counter` | `long + counter` | TSDB ever-increasing total |
+| `bytes_gauge` | `long + gauge` | TSDB point-in-time snapshot |
+| `host` | `text + keyword` | 4 distinct hosts |
+| `extension` | `text + keyword` | zip, deb, rpm, gz, css |
+| `memory` / `phpmemory` | `double / long` | ⚠️ Null in every document — wasted mapping slots |
+
+### Key facts to know before querying
+
+- **All traffic originates from US** — `geo.src` returns only `"US"` for all 14,074 docs. Do not use this dataset to test source-country filtering.
+- **No response exceeds ~20KB** — `WHERE bytes > 50000` returns zero rows. Check `MAX(bytes)` before writing range filters.
+- **All 441 errors are 503** — there are no 500 errors in this dataset. Response breakdown: `200 → 12,832` / `404 → 801` / `503 → 441`.
+- **`response` is text, not integer** — the single biggest mapping gotcha. Range queries like `response >= 500` throw a `verification_exception`. Workaround: `EVAL is_error = CASE(TO_INTEGER(response.keyword) >= 500, 1, 0)`.
+
+---
+
 ## What Is Coming Next
 
 ### ✅ esql_query_cookbook.html + esql_query_cookbook.pdf
@@ -146,5 +189,50 @@ An interactive overview of all tools is in [`stack_overview.html`](./stack_overv
 
 ---
 
+## Official References
+
+All concepts in this repo are grounded in the official Elastic documentation. Use these links to go deeper on any topic.
+
+### Elasticsearch Core
+
+| Topic | Link |
+|---|---|
+| Clusters, nodes, and shards | https://www.elastic.co/docs/deploy-manage/distributed-architecture/clusters-nodes-shards |
+| Index lifecycle management | https://www.elastic.co/guide/en/elasticsearch/reference/current/index-lifecycle-management.html |
+| ILM phases and actions | https://www.elastic.co/docs/manage-data/lifecycle/index-lifecycle-management/index-lifecycle |
+| Configure a lifecycle policy | https://www.elastic.co/docs/manage-data/lifecycle/index-lifecycle-management/configure-lifecycle-policy |
+| Explicit mapping | https://www.elastic.co/docs/manage-data/data-store/mapping/explicit-mapping |
+| Dynamic field mapping | https://www.elastic.co/guide/en/elasticsearch/reference/current/dynamic-field-mapping.html |
+| Mapping types overview | https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping.html |
+| How many shards should I have | https://www.elastic.co/blog/how-many-shards-should-i-have-in-my-elasticsearch-cluster |
+| Shards and replicas guide | https://www.elastic.co/search-labs/blog/elasticsearch-shards-and-replicas-guide |
+
+### ES|QL
+
+| Topic | Link |
+|---|---|
+| ES\|QL overview | https://www.elastic.co/guide/en/elasticsearch/reference/current/esql.html |
+| ES\|QL commands reference | https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-commands.html |
+| ES\|QL functions reference | https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-functions-operators.html |
+| ES\|QL async query API | https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-async-query-api.html |
+| ES\|QL query parameters | https://www.elastic.co/guide/en/elasticsearch/reference/current/esql-rest.html |
+
+### Kibana
+
+| Topic | Link |
+|---|---|
+| Kibana Discover | https://www.elastic.co/guide/en/kibana/current/discover.html |
+| Index Management UI | https://www.elastic.co/guide/en/kibana/current/index-management.html |
+| Sample data | https://www.elastic.co/guide/en/kibana/current/get-started.html |
+
+### Logstash & Beats
+
+| Topic | Link |
+|---|---|
+| Logstash Elasticsearch output plugin | https://www.elastic.co/guide/en/logstash/current/plugins-outputs-elasticsearch.html |
+| Logstash grok filter | https://www.elastic.co/guide/en/logstash/current/plugins-filters-grok.html |
+| Filebeat overview | https://www.elastic.co/guide/en/beats/filebeat/current/filebeat-overview.html |
+
+---
+
 *Built from hands-on Elasticsearch practice sessions — started March 2026*
-*New sections added as sessions are completed*
