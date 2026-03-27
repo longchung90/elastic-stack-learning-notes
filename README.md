@@ -48,7 +48,7 @@ ELASTICSEARCH_LEARNING.../
 
 ---
 
-## What Is Covered Today
+## Notebooks
 
 ### ✅ Notebooks/shards_in_Es.ipynb
 
