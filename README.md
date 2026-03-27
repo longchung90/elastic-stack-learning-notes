@@ -8,6 +8,7 @@
 ![ES|QL](https://img.shields.io/badge/ES%7CQL-pipeline--based-0077CC?style=flat)
 ![ILM](https://img.shields.io/badge/ILM-hot%20warm%20cold%20frozen-E8A838?style=flat)
 ![Index Mapping](https://img.shields.io/badge/Index%20Mapping-explicit-3DBE8C?style=flat)
+![Runtime Fields](https://img.shields.io/badge/Runtime%20Fields-schema--on--read-8A2BE2?style=flat)
 ![Status](https://img.shields.io/badge/status-in%20progress-orange?style=flat)
 ![Last Updated](https://img.shields.io/badge/last%20updated-March%202026-lightgrey?style=flat)
 
@@ -36,6 +37,7 @@ ELASTICSEARCH_LEARNING.../
     ├── shards_in_Es.ipynb             ✅ Shards, Lucene, shard pruning, node roles
     ├── Mapping.ipynb                  ✅ Index creation, mappings, analyzers, reindex, aliases
     ├── performingsearches.ipynb       ✅ match, match_phrase, term, pagination, sorting, fielddata
+    ├── RuntimeField_practice.ipynb   ✅ Runtime fields, Painless scripting, schema-on-read analysis
     ├── esql_query_cookbook.html       ✅ 15 queries — interactive HTML version ](https://longchung90.github.io/elastic-stack-learning-notes/stack_overview.html)
 
 [![Query Cookbook](https://img.shields.io/badge/view-Query%20Cookbook-0077CC?style=flat)](https://longchung90.github.io/elastic-stack-learning-notes/esql_query_cookbook.html)
@@ -104,6 +106,26 @@ Search query patterns built from real queries against `blogs_fixed2`.
 | `match` vs `term` on nested fields | When to use `.keyword` subfields for exact matching |
 
 > ⚠️ Deep pagination (`from: 10000+`) is expensive — Elasticsearch fetches and discards all preceding results. Use `search_after` for deep pagination in production.
+
+---
+
+### ✅ Notebooks/RuntimeField_practice.ipynb
+
+Schema-on-read analysis using Kibana runtime fields — derive new fields at query time without reindexing.
+
+**Topics covered:**
+
+| Concept | Detail |
+|---|---|
+| Runtime fields | Computed at query time from a Painless script — no reindexing required |
+| Source field | `@timestamp` → derives `day_of_week` |
+| Painless script | `emit(doc['@timestamp'].value.dayOfWeekEnum.getDisplayName(...))` |
+| `emit()` | Required in all runtime field scripts — replaces `return` |
+| Field type | `keyword` — discrete string values like `"Monday"` |
+| Scope | Saved to the data view, available across Discover, Lens, Maps, and Alerting |
+| Performance trade-off | Flexible and reindexing-free, but adds per-document compute cost at query time |
+
+> **When to promote a runtime field to an indexed field:** If a runtime field becomes load-bearing in production dashboards or alerts, materialize it in the index mapping via an ingest pipeline to avoid repeated compute overhead.
 
 ---
 
