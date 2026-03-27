@@ -22,6 +22,16 @@ Hands-on field notes built from real practice sessions on a local Elasticsearch 
 
 This is not a copy of the official docs. It is the notes you wish existed when you started.
 
+### Sources
+
+| Source | Role |
+|---|---|
+| Elastic official training | Foundation — structured curriculum and exercises |
+| Personal session notes | Raw observations, real query outputs, errors hit in practice |
+| Claude (AI assistant) | Expanded explanations, annotations, and insight framing |
+
+The core knowledge and hands-on results come from the training and real sessions. Claude helped articulate concepts clearly, annotate outputs, and surface the *why* behind behaviours observed in practice.
+
 ---
 
 ## Current Status
