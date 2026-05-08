@@ -1,6 +1,8 @@
 # elastic-stack-field-notes
 ### A practitioner's growing field notes on the Elastic Stack — built from real sessions, real data, real outputs
 
+![Elastic Stack Banner](https://images.contentstack.io/v3/assets/bltefdd0b53724fa2ce/blt45ad3ff33c5c31d2/66fc95d1ed4eb84f6a5d8d98/ES-product-suite.jpg)
+
 ![Elasticsearch](https://img.shields.io/badge/Elasticsearch-8.x-005571?style=flat&logo=elasticsearch&logoColor=white)
 ![Kibana](https://img.shields.io/badge/Kibana-8.x-005571?style=flat&logo=kibana&logoColor=white)
 ![Logstash](https://img.shields.io/badge/Logstash-8.x-005571?style=flat&logo=logstash&logoColor=white)
@@ -18,7 +20,7 @@
 
 ## What This Repo Is
 
-Hands-on field notes built from real practice sessions on a local Elasticsearch + Kibana cluster. Every query result is real. Every mapping output is real. Every insight came from actually running the code, hitting the errors, and understanding why.
+Hands-on field notes built from real practice sessions on a local Elasticsearch + Kibana cluster. Every query result is real. Every mapping output is real. Every insight came from actually running[...]
 
 This is not a copy of the official docs. It is the notes you wish existed when you started.
 
@@ -30,7 +32,7 @@ This is not a copy of the official docs. It is the notes you wish existed when y
 | Personal session notes | Raw observations, real query outputs, errors hit in practice |
 | Claude (AI assistant) | Expanded explanations, annotations, and insight framing |
 
-The core knowledge and hands-on results come from the training and real sessions. Claude helped articulate concepts clearly, annotate outputs, and surface the *why* behind behaviours observed in practice.
+The core knowledge and hands-on results come from the training and real sessions. Claude helped articulate concepts clearly, annotate outputs, and surface the *why* behind behaviours observed in p[...]
 
 ---
 
@@ -69,7 +71,7 @@ The foundation. Everything else in Elasticsearch builds on this.
 ```
 Time filter arrives at coordinating node
         ↓
-ES checks each shard's @timestamp min/max in metadata
+Es checks each shard's @timestamp min/max in metadata
 — no documents read yet —
         ↓
 Shards outside the window → SKIPPED entirely
@@ -135,7 +137,7 @@ Schema-on-read analysis using Kibana runtime fields — derive new fields at que
 | Scope | Saved to the data view, available across Discover, Lens, Maps, and Alerting |
 | Performance trade-off | Flexible and reindexing-free, but adds per-document compute cost at query time |
 
-> **When to promote a runtime field to an indexed field:** If a runtime field becomes load-bearing in production dashboards or alerts, materialize it in the index mapping via an ingest pipeline to avoid repeated compute overhead.
+> **When to promote a runtime field to an indexed field:** If a runtime field becomes load-bearing in production dashboards or alerts, materialize it in the index mapping via an ingest pipeline t[...]
 
 ---
 
@@ -209,7 +211,7 @@ Type:       Data stream backing index
 - **All traffic originates from US** — `geo.src` returns only `"US"` for all 14,074 docs. Do not use this dataset to test source-country filtering.
 - **No response exceeds ~20KB** — `WHERE bytes > 50000` returns zero rows. Check `MAX(bytes)` before writing range filters.
 - **All 441 errors are 503** — there are no 500 errors in this dataset. Response breakdown: `200 → 12,832` / `404 → 801` / `503 → 441`.
-- **`response` is text, not integer** — the single biggest mapping gotcha. Range queries like `response >= 500` throw a `verification_exception`. Workaround: `EVAL is_error = CASE(TO_INTEGER(response.keyword) >= 500, 1, 0)`.
+- **`response` is text, not integer** — the single biggest mapping gotcha. Range queries like `response >= 500` throw a `verification_exception`. Workaround: `EVAL is_error = CASE(TO_INTEGER(re[...]
 
 ---
 
@@ -217,13 +219,13 @@ Type:       Data stream backing index
 
 ### ✅ esql_query_cookbook.html
 
-15 ready-to-run ES|QL queries grouped by concept with annotated real outputs. The HTML version is interactive — collapsible sections per concept group. The PDF is print-friendly for desk reference.
+15 ready-to-run ES|QL queries grouped by concept with annotated real outputs. The HTML version is interactive — collapsible sections per concept group. The PDF is print-friendly for desk refere[...]
 
 ---
 
 ## The Stack
 
-An interactive overview of all tools is in [![Stack Overview](https://img.shields.io/badge/view-Stack%20Overview-005571?style=flat)] — open it in a browser for the full visual card with descriptions.
+An interactive overview of all tools is in [![Stack Overview](https://img.shields.io/badge/view-Stack%20Overview-005571?style=flat)] — open it in a browser for the full visual card with descrip[...]
 
 | Layer | Tool | Role | Status in this repo |
 |---|---|---|---|
@@ -237,11 +239,11 @@ An interactive overview of all tools is in [![Stack Overview](https://img.shield
 
 ## How to Use This Repo Right Now
 
-1. **Read `01_core_concepts/shards_explained.md`** — understanding shards is the prerequisite for everything else. The shard pruning concept directly explains why every query guide tells you to set the time picker first.
+1. **Read `01_core_concepts/shards_explained.md`** — understanding shards is the prerequisite for everything else. The shard pruning concept directly explains why every query guide tells you to[...]
 
 2. **Open `03_esql_reference/esql_complete_reference.md`** — use this as your daily query reference. The decision tree at the bottom tells you which command to reach for in any situation.
 
-3. **Run the queries in `03_esql_reference/esql_query_cookbook.md`** — paste them into Kibana Dev Tools against your own `kibana_sample_data_logs` dataset. All 15 queries are tested and return real results.
+3. **Run the queries in `03_esql_reference/esql_query_cookbook.md`** — paste them into Kibana Dev Tools against your own `kibana_sample_data_logs` dataset. All 15 queries are tested and return [...]
 
 4. **Watch this repo** — index build and hands-on session notes are the next sections to be added.
 
